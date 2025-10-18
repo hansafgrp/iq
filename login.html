@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Transline Admin Login</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<style>
+body{background:#f6f8fb;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;}
+.card{border-radius:16px;box-shadow:0 8px 24px rgba(0,0,0,.08);}
+.btn-brand{background:#0B3B8C;color:#fff;border:none;}
+.btn-brand:hover{background:#0a2f73;}
+</style>
+</head>
+<body class="d-flex align-items-center justify-content-center vh-100">
+<div class="card p-4" style="max-width:380px;width:100%;">
+  <h4 class="mb-3 text-center text-primary">Transline Admin</h4>
+  <div class="mb-3">
+    <label class="form-label">Username</label>
+    <input id="user" class="form-control" placeholder="admin">
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Password</label>
+    <input id="pass" type="password" class="form-control" placeholder="••••••">
+  </div>
+  <button id="btnLogin" class="btn btn-brand w-100 mb-2">Login</button>
+  <div id="msg" class="text-center small text-danger"></div>
+</div>
+
+<script>
+const BACKEND = 'YOUR_WEB_APP_URL_HERE'; // <-- replace with your Apps Script web app URL
+document.getElementById('btnLogin').addEventListener('click', async ()=>{
+  const u = document.getElementById('user').value.trim();
+  const p = document.getElementById('pass').value.trim();
+  if(!u || !p){ msg('Enter both fields'); return; }
+  try{
+    const params = new URLSearchParams();
+    params.append('action', 'login');
+    params.append('user', u);
+    params.append('pass', p);
+    const r = await fetch(BACKEND, {
+      method:'POST',
+      body: params // No headers!
+    });
+    const j = await r.json();
+    if(j.ok){
+      localStorage.setItem('transline_token', j.token);
+      localStorage.setItem('transline_user', u);
+      location.href='admin.html';
+    } else msg(j.error || 'Invalid login');
+  }catch(e){ msg('Connection failed'); }
+});
+function msg(s){document.getElementById('msg').textContent=s;}
+</script>
+</body>
+</html>

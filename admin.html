@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Transline Admin Dashboard</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+  :root{ --brand:#0B3B8C; --ring:#e5e7eb; --soft:#f8fafc; }
+  body{ background:#fff; }
+  .card-soft{ border:1px solid var(--ring); border-radius:14px; background:#fff; }
+  .btn-brand{ background:var(--brand); color:#fff; border:none; }
+  .btn-brand:hover{ background:#0a2f73; color:#fff; }
+  .mini{ font-size:.85rem; color:#6b7280; }
+  .table thead th{ position:sticky; top:0; background:#fff; }
+</style>
+</head>
+<body class="pb-4">
+
+<nav class="navbar navbar-light" style="background:#eef4ff;border-bottom:1px solid #e5e7eb;">
+  <div class="container d-flex justify-content-between">
+    <span class="navbar-brand mb-0 h1" style="color:#0B3B8C;">Transline Admin</span>
+    <div>
+      <span class="mini me-3" id="userInfo"></span>
+      <button class="btn btn-outline-secondary btn-sm" id="logoutBtn">Logout</button>
+    </div>
+  </div>
+</nav>
+
+<div class="container my-3">
+  <ul class="nav nav-tabs" id="tabs" role="tablist">
+    <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#analytics" type="button">Analytics</button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#book" type="button">Book Shipment</button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#status" type="button">Update Status</button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#reports" type="button">Reports & Search</button></li>
+  </ul>
+
+  <div class="tab-content pt-3">
+    <!-- Analytics Tab -->
+    <div class="tab-pane fade show active" id="analytics" role="tabpanel">
+      <div class="row g-3">
+        <div class="col-md-4">
+          <div class="card-soft p-3 mb-3">
+            <div class="h5">Total Bookings</div>
+            <div class="display-6" id="totalBookings">–</div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card-soft p-3 mb-3">
+            <div class="h5">Delivered</div>
+            <div class="display-6 text-success" id="deliveredCount">–</div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card-soft p-3 mb-3">
+            <div class="h5">In Transit</div>
+            <div class="display-6 text-warning" id="transitCount">–</div>
+          </div>
+        </div>
+        <div class="col-12">
+          <div class="card-soft p-3 mb-3">
+            <canvas id="statusChart" height="100"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- The rest of your tabs go here, unchanged -->
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+const BACKEND = 'YOUR_WEB_APP_URL_HERE'; // <-- replace with your Apps Script web app URL
+const TOKEN = localStorage.getItem('transline_token') || '';
+const USER  = localStorage.getItem('transline_user') || '';
+
+// Check login on load
+if (!TOKEN) {
+  alert('You are not logged in. Redirecting to login...');
+  window.location.href = 'login.html';
+} else {
+  document.getElementById('userInfo').textContent = `Logged in as: ${USER}`;
+}
+
+// Logout
+document.getElementById('logoutBtn').addEventListener('click', ()=>{
+  localStorage.removeItem('transline_token');
+  localStorage.removeItem('transline_user');
+  window.location.href = 'login.html';
+});
+
+// Analytics fetch and chart
+async function loadAnalytics() {
+  try {
+    const params = new URLSearchParams();
+    params.append('action','search');
+    params.append('auth',TOKEN);
+    const r = await fetch(BACKEND, {method:'POST', body:params});
+    const j = await r.json();
+    if(!j.ok) throw new Error(j.error||'Failed');
+    const rows = j.data.rows || [];
+    document.getElementById('totalBookings').textContent = rows.length;
+    const statusCounts = {};
+    rows.forEach(row => {
+      const status = row.Status || 'Unknown';
+      statusCounts[status] = (statusCounts[status]||0)+1;
+    });
+    document.getElementById('deliveredCount').textContent = statusCounts['Delivered']||0;
+    document.getElementById('transitCount').textContent = statusCounts['In Transit']||0;
+    renderChart(statusCounts);
+  }catch(e){
+    document.getElementById('totalBookings').textContent = '–';
+    document.getElementById('deliveredCount').textContent = '–';
+    document.getElementById('transitCount').textContent = '–';
+  }
+}
+function renderChart(statusCounts) {
+  const ctx = document.getElementById('statusChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'pie',
+    data: {
+      labels: Object.keys(statusCounts),
+      datasets: [{
+        data: Object.values(statusCounts),
+        backgroundColor: [
+          '#0B3B8C','#07bc0c','#ffc107','#e91e63','#6c757d','#17a2b8','#fd7e14'
+        ]
+      }]
+    },
+    options: {
+      plugins: {
+        legend: {position: 'bottom'}
+      }
+    }
+  });
+}
+loadAnalytics();
+
+// When you POST for book, status, reports, use the same URLSearchParams pattern, not JSON.
+
+</script>
+</body>
+</html>

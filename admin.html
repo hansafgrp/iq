@@ -168,19 +168,28 @@ document.getElementById('btnSearch').onclick=async()=>{
 };
 
 // ANALYTICS
-async function loadAnalytics(){
-  try{
-    const r=await fetch(BACKEND,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'analytics',auth:TOKEN})});
-    const j=await r.json();
-    if(!j.ok)throw new Error(j.error);
-    totalBookings.textContent=j.data.total;
-    deliveredCount.textContent=j.data.delivered;
-    transitCount.textContent=j.data.transit;
-    const ctx=document.getElementById('statusChart').getContext('2d');
-    new Chart(ctx,{type:'pie',data:{labels:['Delivered','In Transit','Others'],datasets:[{data:[j.data.delivered,j.data.transit,j.data.total-j.data.delivered-j.data.transit],backgroundColor:['#16a34a','#facc15','#9ca3af']}]},options:{plugins:{legend:{position:'bottom'}}}});
-  }catch(e){console.error(e);}
+async function loadAnalytics() {
+  try {
+    const r = await fetch(BACKEND, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'analytics', auth: TOKEN })
+    });
+    const j = await r.json();
+    if (!j.ok) throw new Error(j.error);
+    renderChart(j.data);
+    document.getElementById('totalBookings').textContent =
+      Object.values(j.data).reduce((a, b) => a + b, 0);
+    document.getElementById('deliveredCount').textContent =
+      j.data['Delivered'] || 0;
+    document.getElementById('transitCount').textContent =
+      j.data['In Transit'] || 0;
+  } catch (e) {
+    console.warn('Analytics error:', e);
+  }
 }
-loadAnalytics();
+setInterval(loadAnalytics, 120000); // auto-refresh every 2 min
+
 </script>
 </body>
 </html>

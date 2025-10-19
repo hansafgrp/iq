@@ -1,0 +1,44 @@
+# Force HTTPS (optional: comment out if you handle this at server level)
+RewriteEngine On
+RewriteCond %{HTTPS} !=on
+RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# Security / misc
+Options -Indexes
+FileETag None
+Header always set X-Content-Type-Options "nosniff"
+Header always set Referrer-Policy "strict-origin-when-cross-origin"
+Header always set X-Frame-Options "SAMEORIGIN"
+Header always set X-XSS-Protection "1; mode=block"
+
+# Compression
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/plain text/css application/javascript application/json image/svg+xml
+</IfModule>
+
+# Far-future cache for static assets (adjust paths as needed)
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType text/css "access plus 30 days"
+  ExpiresByType application/javascript "access plus 30 days"
+  ExpiresByType image/jpeg "access plus 60 days"
+  ExpiresByType image/png "access plus 60 days"
+  ExpiresByType image/svg+xml "access plus 60 days"
+  ExpiresByType image/webp "access plus 60 days"
+</IfModule>
+
+# Never cache PHP endpoints (track/sheets)
+<FilesMatch "^(track|sheets)\.php$">
+  Header set Cache-Control "no-store, no-cache, must-revalidate, max-age=0"
+  Header set Pragma "no-cache"
+</FilesMatch>
+
+# Ensure index.html is default
+DirectoryIndex index.html index.php
+
+# php -- BEGIN cPanel-generated handler, do not edit
+# Set the “ea-php82” package as the default “PHP” programming language.
+<IfModule mime_module>
+  AddHandler application/x-httpd-ea-php82___lsphp .php .php8 .phtml
+</IfModule>
+# php -- END cPanel-generated handler, do not edit

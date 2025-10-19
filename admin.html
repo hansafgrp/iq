@@ -14,6 +14,7 @@
   .btn-brand:hover{background:#072c66;color:#fff;}
   .mini{font-size:.85rem;color:#6b7280;}
   .table thead th{position:sticky;top:0;background:#fff;}
+  .chart-wrap{max-width:320px;margin:auto;}
 </style>
 </head>
 <body class="pb-4">
@@ -37,14 +38,17 @@
   </ul>
 
   <div class="tab-content pt-3">
-
     <!-- Analytics -->
     <div class="tab-pane fade show active" id="analytics">
       <div class="row g-3">
         <div class="col-md-4"><div class="card-soft p-3"><div>Total Bookings</div><div class="h2" id="totalBookings">–</div></div></div>
         <div class="col-md-4"><div class="card-soft p-3"><div>Delivered</div><div class="h2 text-success" id="deliveredCount">–</div></div></div>
         <div class="col-md-4"><div class="card-soft p-3"><div>In Transit</div><div class="h2 text-warning" id="transitCount">–</div></div></div>
-        <div class="col-12"><div class="card-soft p-3"><canvas id="statusChart" height="90"></canvas></div></div>
+        <div class="col-12">
+          <div class="card-soft p-3 chart-wrap">
+            <canvas id="statusChart" height="200" width="200"></canvas>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -56,26 +60,40 @@
           <div class="col-md-3"><label class="form-label">Service</label><select id="service" class="form-select"><option>Express</option><option>Surface</option><option>International</option></select></div>
           <div class="col-md-3"><label class="form-label">Customer</label><input id="customer" class="form-control" /></div>
           <div class="col-md-3"><label class="form-label">Co-loader</label><input id="coloader" class="form-control" /></div>
+
           <div class="col-md-4"><label class="form-label">Sender Name</label><input id="senderName" class="form-control"/></div>
           <div class="col-md-4"><label class="form-label">Sender Phone</label><input id="senderPhone" class="form-control"/></div>
           <div class="col-md-4"><label class="form-label">Origin</label><input id="origin" class="form-control"/></div>
           <div class="col-12"><label class="form-label">Sender Address</label><textarea id="senderAddress" class="form-control"></textarea></div>
+
           <div class="col-md-4"><label class="form-label">Receiver Name</label><input id="receiverName" class="form-control"/></div>
           <div class="col-md-4"><label class="form-label">Receiver Phone</label><input id="receiverPhone" class="form-control"/></div>
           <div class="col-md-4"><label class="form-label">Destination</label><input id="destination" class="form-control"/></div>
           <div class="col-12"><label class="form-label">Receiver Address</label><textarea id="receiverAddress" class="form-control"></textarea></div>
+
           <div class="col-md-2"><label class="form-label">Qty</label><input id="qty" type="number" value="1" class="form-control"/></div>
           <div class="col-md-2"><label class="form-label">Weight</label><input id="weight" type="number" step="0.01" class="form-control"/></div>
           <div class="col-md-2"><label class="form-label">Unit</label><select id="unit" class="form-select"><option>kg</option><option>g</option></select></div>
           <div class="col-md-2"><label class="form-label">Rate</label><input id="rate" type="number" step="0.01" class="form-control"/></div>
           <div class="col-md-4"><label class="form-label">Item Description</label><input id="itemDesc" class="form-control"/></div>
+
           <div class="col-md-3"><label class="form-label">ETA</label><input id="eta" type="date" class="form-control"/></div>
           <div class="col-md-3"><label class="form-label">AWB</label><input id="awb" class="form-control"/></div>
-          <div class="col-md-3"><label class="form-label">Notes</label><input id="notes" class="form-control"/></div>
+          <div class="col-md-6"><label class="form-label">Notes</label><input id="notes" class="form-control"/></div>
+
           <div class="col-12 d-flex gap-2">
             <button id="btnBook" class="btn btn-brand">Book Shipment</button><div id="bookMsg" class="mini"></div>
           </div>
-          <div id="bookResult" class="col-12 d-none mt-3"><div class="alert alert-success"><div>Booked! Order ID: <span id="rOrderId"></span> • Invoice: <span id="rInvoice"></span> • <a id="rPrint" target="_blank" class="btn btn-sm btn-outline-secondary">Print Invoice</a></div></div></div>
+
+          <div id="bookResult" class="col-12 d-none mt-3">
+            <div class="alert alert-success">
+              <div>
+                Booked! Order ID: <span id="rOrderId"></span> • Invoice: <span id="rInvoice"></span>
+                • <button id="rPrintBtn" class="btn btn-sm btn-outline-secondary">Print Invoice</button>
+              </div>
+            </div>
+          </div>
+
         </div>
       </div>
     </div>
@@ -84,12 +102,12 @@
     <div class="tab-pane fade" id="status">
       <div class="card-soft p-3">
         <div class="row g-3">
-          <div class="col-md-3"><input id="sid" placeholder="Order ID / AWB" class="form-control"/></div>
-          <div class="col-md-3"><select id="sstatus" class="form-select"><option>Booked</option><option>Manifested</option><option>In Transit</option><option>Arrived</option><option>Out for Delivery</option><option>Delivered</option><option>RTO Initiated</option><option>RTO Delivered</option><option>Exception</option></select></div>
-          <div class="col-md-2"><input id="seta" type="date" class="form-control"/></div>
-          <div class="col-md-2"><input id="sloc" placeholder="Location" class="form-control"/></div>
-          <div class="col-md-2"><input id="scoloader" placeholder="Co-loader" class="form-control"/></div>
-          <div class="col-12"><input id="snote" placeholder="Note" class="form-control"/></div>
+          <div class="col-md-3"><label class="form-label">Order ID / AWB</label><input id="sid" class="form-control"/></div>
+          <div class="col-md-3"><label class="form-label">Status</label><select id="sstatus" class="form-select"><option>Booked</option><option>Manifested</option><option>In Transit</option><option>Arrived at Facility</option><option>Out for Delivery</option><option>Delivered</option><option>RTO Initiated</option><option>RTO Delivered</option><option>Exception</option></select></div>
+          <div class="col-md-2"><label class="form-label">ETA</label><input id="seta" type="date" class="form-control"/></div>
+          <div class="col-md-2"><label class="form-label">Location</label><input id="sloc" class="form-control"/></div>
+          <div class="col-md-2"><label class="form-label">Co-loader</label><input id="scoloader" class="form-control"/></div>
+          <div class="col-12"><label class="form-label">Note</label><input id="snote" class="form-control"/></div>
           <div class="col-12 d-flex gap-2"><button id="btnStatus" class="btn btn-brand">Update</button><div id="statusMsg" class="mini"></div></div>
         </div>
       </div>
@@ -102,94 +120,154 @@
           <input id="rq" class="form-control" placeholder="Search keyword (Order, AWB, Name, City)"/>
           <button id="btnSearch" class="btn btn-brand">Search</button>
         </div>
-        <div class="table-responsive"><table class="table table-sm align-middle"><thead><tr><th>Order ID</th><th>Customer</th><th>Status</th><th>Amount</th><th>Print</th></tr></thead><tbody id="rows"></tbody></table></div>
+        <div class="table-responsive">
+          <table class="table table-sm align-middle">
+            <thead>
+              <tr><th>Order ID</th><th>Customer</th><th>Status</th><th>Amount</th><th>Print</th></tr>
+            </thead>
+            <tbody id="rows"></tbody>
+          </table>
+        </div>
       </div>
     </div>
+
   </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-const BACKEND = 'https://www.translinelogistics.in/proxy.php'; 
-const TOKEN = localStorage.getItem('transline_token');
-const USER = localStorage.getItem('transline_user');
+const BACKEND = '/proxy.php'; // your server proxy to Apps Script
+const TOKEN   = localStorage.getItem('transline_token');
+const USER    = localStorage.getItem('transline_user') || 'admin';
 
 if(!TOKEN){ alert('Login required'); window.location.href='login.html'; }
 else document.getElementById('userInfo').textContent='Logged in as: '+USER;
 
 document.getElementById('logoutBtn').onclick=()=>{localStorage.clear();window.location='login.html';};
 
-function msg(el,m,ok=true){el.textContent=m;el.style.color=ok?'green':'red';}
-function value(id){return document.getElementById(id).value.trim();}
+function msg(el,m,ok=true){ el.textContent=m; el.style.color=ok?'#065f46':'#b91c1c'; }
+function value(id){ return (document.getElementById(id).value||'').trim(); }
+function amount(rate,weight){ const r=parseFloat(rate||0), w=parseFloat(weight||0); return (!isNaN(r)&&!isNaN(w))?(r*w):0; }
 
-// BOOK
-document.getElementById('btnBook').onclick=async()=>{
-  msg(bookMsg,'Booking...');
-  const data={action:'book',auth:TOKEN,
-  customer:value('customer'),senderName:value('senderName'),senderPhone:value('senderPhone'),
-  senderAddress:value('senderAddress'),origin:value('origin'),receiverName:value('receiverName'),
-  receiverPhone:value('receiverPhone'),receiverAddress:value('receiverAddress'),
-  destination:value('destination'),bookingType:value('bookingType'),service:value('service'),
-  qty:value('qty'),weight:value('weight'),unit:value('unit'),rate:value('rate'),
-  itemDesc:value('itemDesc'),coloader:value('coloader'),eta:value('eta'),awb:value('awb'),notes:value('notes')};
+/* ----- Analytics ----- */
+let chart;
+async function loadAnalytics(){
   try{
-    const r=await fetch(BACKEND,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
-    const j=await r.json();
-    if(!j.ok)throw new Error(j.error);
-    msg(bookMsg,'Booked ✓');
-    bookResult.classList.remove('d-none');
-    rOrderId.textContent=j.data.orderId;
-    rInvoice.textContent=j.data.invoiceNo;
-    rPrint.href=`${BACKEND}?action=print&id=${j.data.orderId}`;
-  }catch(e){msg(bookMsg,'Failed: '+e.message,false);}
-};
-
-// STATUS
-document.getElementById('btnStatus').onclick=async()=>{
-  const data={action:'status',auth:TOKEN,id:value('sid'),status:value('sstatus'),
-  eta:value('seta'),location:value('sloc'),note:value('snote'),coloader:value('scoloader')};
-  msg(statusMsg,'Updating...');
-  try{
-    const r=await fetch(BACKEND,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
-    const j=await r.json();
-    if(!j.ok)throw new Error(j.error);
-    msg(statusMsg,'Updated ✓');
-  }catch(e){msg(statusMsg,'Failed: '+e.message,false);}
-};
-
-// REPORTS
-document.getElementById('btnSearch').onclick=async()=>{
-  const data={action:'search',auth:TOKEN};
-  rows.innerHTML='<tr><td colspan=5>Loading...</td></tr>';
-  const r=await fetch(BACKEND,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
-  const j=await r.json();
-  if(!j.ok){rows.innerHTML='<tr><td colspan=5>Error</td></tr>';return;}
-  rows.innerHTML=j.data.rows.map(x=>`<tr><td>${x.OrderID||x[1]}</td><td>${x.Customer||x[3]}</td><td>${x.Status||x[21]}</td><td>${x.Rate||x[17]}</td><td><a href="${BACKEND}?action=print&id=${x.OrderID||x[1]}" target="_blank">PDF</a></td></tr>`).join('');
-};
-
-// ANALYTICS
-async function loadAnalytics() {
-  try {
     const r = await fetch(BACKEND, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'analytics', auth: TOKEN })
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ action:'analytics', auth:TOKEN })
     });
     const j = await r.json();
-    if (!j.ok) throw new Error(j.error);
-    renderChart(j.data);
-    document.getElementById('totalBookings').textContent =
-      Object.values(j.data).reduce((a, b) => a + b, 0);
-    document.getElementById('deliveredCount').textContent =
-      j.data['Delivered'] || 0;
-    document.getElementById('transitCount').textContent =
-      j.data['In Transit'] || 0;
-  } catch (e) {
-    console.warn('Analytics error:', e);
-  }
-}
-setInterval(loadAnalytics, 120000); // auto-refresh every 2 min
+    if(!j.ok) throw new Error(j.error||'Analytics failed');
+    const data = j.data||{};
+    const total = Object.values(data).reduce((a,b)=>a+b,0);
+    document.getElementById('totalBookings').textContent = total;
+    document.getElementById('deliveredCount').textContent = data['Delivered']||0;
+    document.getElementById('transitCount').textContent = data['In Transit']||0;
 
+    const ctx = document.getElementById('statusChart').getContext('2d');
+    if(chart) chart.destroy();
+    chart = new Chart(ctx, {
+      type: 'pie',
+      data: { labels: Object.keys(data), datasets: [{ data: Object.values(data) }] },
+      options: { plugins:{ legend:{ position:'bottom' } }, responsive:true, maintainAspectRatio:false }
+    });
+  }catch(e){ console.warn('Analytics:', e.message); }
+}
+loadAnalytics();
+setInterval(loadAnalytics, 120000); // refresh every 2 min
+
+/* ----- Book ----- */
+document.getElementById('btnBook').onclick=async()=>{
+  const payload={
+    action:'book', auth:TOKEN,
+    customer:value('customer'),
+    senderName:value('senderName'), senderPhone:value('senderPhone'), senderAddress:value('senderAddress'),
+    origin:value('origin'),
+    receiverName:value('receiverName'), receiverPhone:value('receiverPhone'), receiverAddress:value('receiverAddress'),
+    destination:value('destination'),
+    bookingType:value('bookingType'), service:value('service'),
+    qty:value('qty'), weight:value('weight'), unit:value('unit'), rate:value('rate'),
+    itemDesc:value('itemDesc'), coloader:value('coloader'),
+    eta:value('eta'), awb:value('awb'), notes:value('notes')
+  };
+  msg(bookMsg,'Booking...');
+  try{
+    const r = await fetch(BACKEND,{ method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+    const j = await r.json();
+    if(!j.ok) throw new Error(j.error||'Failed');
+    msg(bookMsg,'Booked ✓');
+    document.getElementById('bookResult').classList.remove('d-none');
+    document.getElementById('rOrderId').textContent = j.data.orderId;
+    document.getElementById('rInvoice').textContent = j.data.invoiceNo;
+
+    // Wire print button to POST then open returned PDF URL
+    document.getElementById('rPrintBtn').onclick = async ()=>{
+      const rp = await fetch(BACKEND,{ method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ action:'print', auth:TOKEN, id:j.data.orderId })});
+      const jr = await rp.json();
+      if(jr.ok && jr.data && jr.data.url){ window.open(jr.data.url, '_blank'); }
+      else { alert('Print failed'); }
+    };
+  }catch(e){
+    msg(bookMsg,'Failed: '+e.message,false);
+  }
+};
+
+/* ----- Status ----- */
+document.getElementById('btnStatus').onclick=async()=>{
+  const idRaw = value('sid');
+  const payload={
+    action:'status', auth:TOKEN,
+    id: idRaw && /^\d+$/.test(idRaw) ? '' : idRaw, // numeric → likely AWB
+    awb: idRaw && /^\d+$/.test(idRaw) ? idRaw : '',
+    status:value('sstatus'), eta:value('seta'), location:value('sloc'), coloader:value('scoloader'), note:value('snote')
+  };
+  msg(statusMsg,'Updating...');
+  try{
+    const r = await fetch(BACKEND,{ method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+    const j = await r.json();
+    if(!j.ok) throw new Error(j.error||'Failed');
+    msg(statusMsg,'Updated ✓');
+    loadAnalytics(); // small refresh
+  }catch(e){
+    msg(statusMsg,'Failed: '+e.message,false);
+  }
+};
+
+/* ----- Reports ----- */
+document.getElementById('btnSearch').onclick=async()=>{
+  rows.innerHTML='<tr><td colspan="5" class="text-center">Loading...</td></tr>';
+  try{
+    const r = await fetch(BACKEND,{ method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ action:'search', auth:TOKEN }) });
+    const j = await r.json();
+    if(!j.ok) throw new Error(j.error||'Failed');
+    const arr = j.data.rows||[];
+
+    const html = arr.map(x=>{
+      const amt = Number((x.Rate||0) * (x.Weight||0)) || 0;
+      return `<tr>
+        <td>${esc(x.OrderID)}</td>
+        <td>${esc(x.Customer||'')}</td>
+        <td>${esc(x.Status||'')}</td>
+        <td>₹${amt.toFixed(2)}</td>
+        <td><button class="btn btn-sm btn-outline-secondary" onclick="printOrder('${escJS(x.OrderID||'')}')">PDF</button></td>
+      </tr>`;
+    }).join('');
+    rows.innerHTML = html || '<tr><td colspan="5" class="text-center">No results</td></tr>';
+  }catch(e){
+    rows.innerHTML='<tr><td colspan="5" class="text-center text-danger">Error</td></tr>';
+  }
+};
+window.printOrder = async function(orderId){
+  if(!orderId) return;
+  const r = await fetch(BACKEND,{ method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ action:'print', auth:TOKEN, id: orderId })});
+  const j = await r.json();
+  if(j.ok && j.data && j.data.url){ window.open(j.data.url, '_blank'); }
+  else alert('Print failed');
+}
+
+function esc(s){ return String(s||'').replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;' }[m])); }
+function escJS(s){ return String(s||'').replace(/['"\\]/g, m=>'\\'+m); }
 </script>
 </body>
 </html>
